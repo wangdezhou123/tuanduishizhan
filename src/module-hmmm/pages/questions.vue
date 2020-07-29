@@ -118,12 +118,30 @@
             <el-button type="primary" size="mini">搜索</el-button>
           </el-col>
         </el-row>
+        <el-table :data="questionList" style="width:100%">
+          <el-table-column label="序号" type="index" width="60"></el-table-column>
+          <el-table-column label="试题编号" prop="number"></el-table-column>
+          <el-table-column label="学科" prop="subject"></el-table-column>
+          <el-table-column :formatter="questionTypeFMT" label="题型" prop="questionType"></el-table-column>
+          <el-table-column label="题干" prop="question"></el-table-column>
+          <el-table-column label="录入时间" prop="addDate" width="170"></el-table-column>
+          <el-table-column label="难度" prop="difficulty"></el-table-column>
+          <el-table-column label="录入人" prop="creator"></el-table-column>
+          <el-table-column label="操作" width="200">
+            <a href="#">预览</a>
+            <a href="#">修改</a>
+            <a href="#">删除</a>
+            <a href="#">加入精选</a>
+          </el-table-column>
+        </el-table>
       </el-card>
     </div>
   </div>
 </template>
 
 <script>
+
+import { list } from '@/api/hmmm/questions' // 基础题库相关api导入
 
 import { provinces, citys } from '@/api/hmmm/citys' // 获取 省份/城市 信息方法导入
 
@@ -148,6 +166,7 @@ export default {
   name: 'QuestionsList',
   data() {
     return {
+      questionList: [], // 基础题库列表信息
       cityList: [], // 区县信息
       directionList, // 方向
       catalogIDList: [], // 二级目录
@@ -178,6 +197,8 @@ export default {
     }
   },
   created() {
+    // 获得 基础题库 列表信息
+    this.getQuestionList()
     // 获得 二级目录 信息
     this.getCatalogIDList()
     // 获得录入人信息
@@ -188,6 +209,24 @@ export default {
     this.getSubjectIDList()
   },
   methods: {
+    // 对 题型  列信息进行二次更新操作
+    // row:代表当前每个数据项记录信息的，是一个对象，{id:xxx,number:xx,difficulty:xx,addDate:xx……}
+    //     可以通过这个row访问到当前任何数据项目记录信息,调用形式：row.id  row.number
+    // column:可以获取记录的列的新，一般不使用
+    // cellValue:当前行当前列的数据项目记录信息，类似 row.questionType的内容
+    // index: 代表各个记录的序号信息1/2/3/4/5……，一般不使用
+    questionTypeFMT(row, column, cellValue, index) {
+      // console.log(row.city)
+      // return cellValue
+      // 把cellValue对应的"汉字"内容返回显示
+      return this.questionTypeList[cellValue - 1].label
+    },
+    // 获得基础题库列表信息
+    async getQuestionList() {
+      var result = await list()
+      // 把获得好的题库列表信息赋予给 questionList 成员
+      this.questionList = result.data.items
+    },
     // 获得 城市 信息
     // 这个pname形参就代表被选中的省份信息
     getCitys(pname) {
@@ -239,5 +278,8 @@ export default {
 }
 .el-row {
   margin-bottom: 10px;
+}
+.el-table {
+  margin-top: 25px;
 }
 </style>
