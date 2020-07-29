@@ -58,10 +58,18 @@
         <el-row :gutter="20">
           <el-col :span="6">
             城市：
-            <el-select v-model="searchForm.province" placeholder="选城市" style="width:90px;">
-              <el-option v-for="item in provinces()" :key="item" :label="item" :value="item"></el-option>
+            <el-select
+              @change="getCitys(searchForm.province)"
+              v-model="searchForm.province"
+              placeholder="选城市"
+              style="width:90px;"
+            >
+              <el-option v-for="(item,k) in provinces()" :key="k" :value="item" :label="item"></el-option>
+              <!-- <el-option v-for="item in provinces()" :key="item" :label="item" :value="item"></el-option> -->
             </el-select>
-            <el-select v-model="searchForm.city" placeholder="选地区" style="width:90px;"></el-select>
+            <el-select v-model="searchForm.city" placeholder="选地区" style="width:90px;">
+              <el-option v-for="item in cityList" :key="item" :label="item" :value="item"></el-option>
+            </el-select>
           </el-col>
           <el-col :span="6">
             关键字：
@@ -140,8 +148,7 @@ export default {
   name: 'QuestionsList',
   data() {
     return {
-      // 获得 省份 信息，简易成员赋值
-      provinces, // provinces:provinces
+      cityList: [], // 区县信息
       directionList, // 方向
       catalogIDList: [], // 二级目录
       creatorIDList: [], // 录入人
@@ -181,6 +188,14 @@ export default {
     this.getSubjectIDList()
   },
   methods: {
+    // 获得 城市 信息
+    // 这个pname形参就代表被选中的省份信息
+    getCitys(pname) {
+      this.searchForm.city = '' // 清除之前选取好的城市
+      this.cityList = citys(pname)
+    },
+    // 获得 省份 信息，简易成员赋值
+    provinces, // provinces:provinces
     // 获得 录入人 列表数据
     async getCatalogIDList() {
       var result = await directorysSimple()
