@@ -124,8 +124,12 @@
           <el-table-column label="学科" prop="subject"></el-table-column>
           <el-table-column :formatter="questionTypeFMT" label="题型" prop="questionType"></el-table-column>
           <el-table-column label="题干" prop="question"></el-table-column>
-          <el-table-column label="录入时间" prop="addDate" width="170"></el-table-column>
-          <el-table-column label="难度" prop="difficulty"></el-table-column>
+          <el-table-column label="录入时间" width="170">
+            <!-- 通过插值表达式表现时间信息，并应用过滤器做格式转换 -->
+            <!-- 获得当前列的信息：作用域插槽应用，具体还需要通过row衔接各个字段内容 -->
+            <span slot-scope="stData">{{stData.row.addDate | parseTimeByString}}</span>
+          </el-table-column>
+          <el-table-column label="难度" prop="difficulty" :formatter="difficultyFMT"></el-table-column>
           <el-table-column label="录入人" prop="creator"></el-table-column>
           <el-table-column label="操作" width="200">
             <a href="#">预览</a>
@@ -196,6 +200,15 @@ export default {
       }
     }
   },
+  watch: {
+    searchForm: {
+      handler: function (newV, oldV) {
+        // 重新获得试题
+        this.getQuestionList()
+      },
+      deep: true
+    }
+  },
   created() {
     // 获得 基础题库 列表信息
     this.getQuestionList()
@@ -209,6 +222,10 @@ export default {
     this.getSubjectIDList()
   },
   methods: {
+    // 难度数字转汉字
+    difficultyFMT(row, column, cellValue) {
+      return this.difficultyList[cellValue - 1]['label']
+    },
     // 对 题型  列信息进行二次更新操作
     // row:代表当前每个数据项记录信息的，是一个对象，{id:xxx,number:xx,difficulty:xx,addDate:xx……}
     //     可以通过这个row访问到当前任何数据项目记录信息,调用形式：row.id  row.number
@@ -223,7 +240,7 @@ export default {
     },
     // 获得基础题库列表信息
     async getQuestionList() {
-      var result = await list()
+      var result = await list(this.searchForm)
       // 把获得好的题库列表信息赋予给 questionList 成员
       this.questionList = result.data.items
     },
@@ -238,7 +255,6 @@ export default {
     // 获得 录入人 列表数据
     async getCatalogIDList() {
       var result = await directorysSimple()
-      console.log(result)
 
       this.catalogIDList = result.data
     },
