@@ -9,6 +9,12 @@
           :span: 设置各个列占据的宽度，满值24，是“权”的单位
           :offset="6" 设置当前列左边的空隙宽度，单位是“权” 
         -->
+        <el-row>
+          <el-col>
+            <el-button type="primary" size="mini" @click="$router.push('/questions/new')">新增试题</el-button>
+            <el-button type="danger" size="mini">批量导入</el-button>
+          </el-col>
+        </el-row>
         <el-row :gutter="20">
           <el-col :span="6">
             学科：
@@ -132,10 +138,13 @@
           <el-table-column label="难度" prop="difficulty" :formatter="difficultyFMT"></el-table-column>
           <el-table-column label="录入人" prop="creator"></el-table-column>
           <el-table-column label="操作" width="200">
-            <a href="#">预览</a>
-            <a href="#">修改</a>
-            <a href="#">删除</a>
-            <a href="#">加入精选</a>
+            <!-- 通过template统一接收作用域插槽数据，这样可以给内部的各个标签都使用，避免开发重复代码 -->
+            <template slot-scope="stData">
+              <a href="#">预览</a>
+              <a href="#">修改</a>
+              <a href="#" @click.prevent="del(stData.row)">删除</a>
+              <a href="#">加入精选</a>
+            </template>
           </el-table-column>
         </el-table>
       </el-card>
@@ -145,7 +154,7 @@
 
 <script>
 
-import { list } from '@/api/hmmm/questions' // 基础题库相关api导入
+import { list, remove } from '@/api/hmmm/questions' // 基础题库相关api导入
 
 import { provinces, citys } from '@/api/hmmm/citys' // 获取 省份/城市 信息方法导入
 
@@ -222,6 +231,25 @@ export default {
     this.getSubjectIDList()
   },
   methods: {
+    // 删除试题
+    // question：被删除试题的整条记录对象
+    del(question) {
+      // 确认框
+      this.$confirm('确认要删除该记录么?', '删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          // 调用remove的api方法，实现删除
+          let result = await remove(question)
+          // console.log(result)
+          this.$message.success('删除成功')
+          // 数据刷新(旧的就不显示了)
+          this.getQuestionList()
+        })
+        .catch(() => { })
+    },
     // 难度数字转汉字
     difficultyFMT(row, column, cellValue) {
       return this.difficultyList[cellValue - 1]['label']
