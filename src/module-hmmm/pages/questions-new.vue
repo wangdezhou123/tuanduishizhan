@@ -73,6 +73,27 @@
           <el-form-item label="题干：">
             <el-input type="textarea" v-model="addForm.question"></el-input>
           </el-form-item>
+          <el-form-item label="选项：">
+            <el-radio v-model="singleSelect" :label="0">
+              A:
+              <el-input type="text" v-model="addForm.options[0]['title']"></el-input>
+            </el-radio>
+            <br />
+            <el-radio v-model="singleSelect" :label="1">
+              B:
+              <el-input type="text" v-model="addForm.options[1]['title']"></el-input>
+            </el-radio>
+            <br />
+            <el-radio v-model="singleSelect" :label="2">
+              C:
+              <el-input type="text" v-model="addForm.options[2]['title']"></el-input>
+            </el-radio>
+            <br />
+            <el-radio v-model="singleSelect" :label="3">
+              D:
+              <el-input type="text" v-model="addForm.options[3]['title']"></el-input>
+            </el-radio>
+          </el-form-item>
           <el-form-item label="答案：">
             <el-input type="textarea" v-model="addForm.answer"></el-input>
           </el-form-item>
@@ -83,7 +104,7 @@
             <el-input type="text" v-model="addForm.tags"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary">提交</el-button>
+            <el-button type="primary" @click="tianjia()">提交</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -92,6 +113,8 @@
 </template>
 
 <script>
+
+import { add } from '@/api/hmmm/questions' // 试题
 
 import { list as companysList } from '@/api/hmmm/companys' // 企业
 
@@ -105,6 +128,8 @@ export default {
   name: 'QuestionsNew',
   data() {
     return {
+      // 感知被被选中的项目的值，是中间成员，需要通过watch转变为isRight
+      singleSelect: '',
       difficultyList, // 难度 简易成员赋值
 
       questionTypeList, // 题型 (简易成员赋值)
@@ -115,6 +140,15 @@ export default {
       directionList, // 方向(简易成员赋值)
       // 添加试题 表单数据对象
       addForm: {
+        // 选项表单数据对象部分
+        options: [
+          // {code: '编号ABCD', title: '当前项目文字答案', 
+          //   img: '当前项目图片答案', isRight: boolean表明当前项目是否是答案},
+          { code: 'A', title: '', img: '', isRight: false },
+          { code: 'B', title: '', img: '', isRight: false },
+          { code: 'C', title: '', img: '', isRight: false },
+          { code: 'D', title: '', img: '', isRight: false }
+        ],
         // 如下表单字段名称来自yapi数据接口
         difficulty: '1', // 默认 难度 第一个项目被选中(要求是字符串)
 
@@ -133,12 +167,35 @@ export default {
       }
     }
   },
+  watch: {
+    singleSelect(newV, oldV) {
+      // 设置当前单选按钮选中情况，即isRight的值发生变化
+      // 1. 先让全部项目都处于false不选中状态
+      for (var i = 0; i < 4; i++) {
+        this.addForm.options[i].isRight = false
+      }
+      // 2. 当前选中项目的isRight为true
+      this.addForm.options[newV].isRight = true
+    }
+  },
   created() {
     this.getEnterpriseIDList() // 获得企业
     this.getSubjectIDList() // 学科
     this.getCatalogIDList() // 二级目录
   },
   methods: {
+    // 添加试题
+    async tianjia() {
+      // 调用api
+      // await除了获得具体返回结果，还有一个作用
+      // 等待添加完成再向后执行，可以保证添加的数据会在列表中展示
+      await add(this.addForm)
+      // console.log(result)  // 有返回新试题的id信息
+      // 提示成功信息
+      this.$message.success('添加试题成功！')
+      // 页面跳转到列表去
+      this.$router.push('/questions/list')
+    },
     // 获得 企业 列表信息
     async getEnterpriseIDList() {
       var result = await companysList()
